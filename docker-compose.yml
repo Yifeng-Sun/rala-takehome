@@ -91,7 +91,7 @@ services:
     ports:
       - '3000:3000'
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       DATABASE_USER: rala_user

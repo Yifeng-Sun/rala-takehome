@@ -74,6 +74,22 @@ export class EventsService {
     return event;
   }
 
+  async findByUserId(userId: string): Promise<Event[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['events', 'events.invitees'],
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    // Sort events by start time (earliest first)
+    return user.events.sort(
+      (a, b) => a.startTime.getTime() - b.startTime.getTime(),
+    );
+  }
+
   async update(id: string, updateEventDto: UpdateEventDto): Promise<Event> {
     const event = await this.findOne(id);
 
