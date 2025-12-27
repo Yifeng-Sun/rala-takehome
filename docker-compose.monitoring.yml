@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   prometheus:
     image: prom/prometheus:latest
@@ -65,8 +63,6 @@ services:
       DATA_SOURCE_NAME: 'postgresql://rala_user:rala_password@postgres:5432/event_collaboration?sslmode=disable'
     networks:
       - rala-network
-    depends_on:
-      - postgres
     restart: unless-stopped
 
   redis-exporter:
@@ -78,8 +74,6 @@ services:
       REDIS_ADDR: 'redis:6379'
     networks:
       - rala-network
-    depends_on:
-      - redis
     restart: unless-stopped
 
   kafka-exporter:
@@ -91,8 +85,6 @@ services:
       - '--kafka.server=kafka:29092'
     networks:
       - rala-network
-    depends_on:
-      - kafka
     restart: unless-stopped
 
 volumes:
@@ -101,4 +93,4 @@ volumes:
 
 networks:
   rala-network:
-    external: true
+    driver: bridge
