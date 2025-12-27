@@ -12,6 +12,7 @@ import { User } from '../../entities/user.entity';
 import { AuditLog, AuditAction } from '../../entities/audit-log.entity';
 import { CreateEventDto, UpdateEventDto, BatchCreateEventsDto } from './dto';
 import { KafkaService } from '../kafka/kafka.service';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class EventsService {
@@ -25,6 +26,7 @@ export class EventsService {
     private readonly dataSource: DataSource,
     @Inject(forwardRef(() => KafkaService))
     private readonly kafkaService: KafkaService,
+    private readonly aiService: AiService,
   ) {}
 
   async create(createEventDto: CreateEventDto): Promise<Event> {
@@ -348,8 +350,11 @@ export class EventsService {
       Math.max(...events.map((e) => e.endTime.getTime())),
     );
 
-    // Concatenate titles
-    const title = events.map((e) => e.title).join(' + ');
+    // Concatenate titles with truncation to fit 500 char limit
+    const fullTitle = events.map((e) => e.title).join(' + ');
+    const title = fullTitle.length > 500
+      ? fullTitle.substring(0, 497) + '...'
+      : fullTitle;
 
     // Combine descriptions
     const description = events
@@ -380,6 +385,21 @@ export class EventsService {
       mergedFrom: events.map((e) => e.id),
     });
 
-    return await queryRunner.manager.save(Event, mergedEvent);
+    // Save first to get the ID
+    const savedEvent = await queryRunner.manager.save(Event, mergedEvent);
+
+    // Generate AI summary
+    try {
+      const aiSummary = await this.aiService.generateMergeSummary(
+        savedEvent,
+        events,
+      );
+      savedEvent.aiSummary = aiSummary;
+      return await queryRunner.manager.save(Event, savedEvent);
+    } catch (error) {
+      console.error('Failed to generate AI summary:', error);
+      // Return event without AI summary if generation fails
+      return savedEvent;
+    }
   }
 }
