@@ -10,7 +10,7 @@ const successfulRequests = new Counter('successful_requests');
 
 // Configuration
 const BASE_URL = __ENV.API_URL || 'http://localhost:3000';
-const USER_ID = __ENV.USER_ID || 'a61de29c-e8d5-4382-ba23-2ad6e3d808bf';
+const USER_ID = __ENV.USER_ID || 'b84b5868-4982-4b2c-b3af-db28dec8a205';
 
 // Test configuration: 500 requests in 1 second
 export const options = {
